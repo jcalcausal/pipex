@@ -6,7 +6,7 @@
 /*   By: jalcausa <jalcausa@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 12:32:12 by jalcausa          #+#    #+#             */
-/*   Updated: 2025/01/21 14:50:24 by jalcausa         ###   ########.fr       */
+/*   Updated: 2025/01/21 18:44:40 by jalcausa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,12 +48,12 @@ void	execute_process(char *cmd, char **envp)
 	if (path == NULL)
 	{
 		free_split(cmd_splitted);
-		perror("Command not found");
+		ft_printf("error\n");
 		exit(EXIT_FAILURE);
 	}
 	if (execve(path, cmd_splitted, envp) == -1)
 	{
-		perror("Error executing command");
+		ft_printf("error\n");
 		free(path);
 		free_split(cmd_splitted);
 		exit(EXIT_FAILURE);
@@ -68,13 +68,13 @@ static void	child_process(char **argv, int *pipe_fd, char **envp)
 	infile_fd = open(argv[1], O_RDONLY);
 	if (infile_fd == -1)
 	{
-		perror("Error opening infile");
+		ft_printf("error\n");
 		exit(EXIT_FAILURE);
 	}
 	if (dup2(infile_fd, STDIN_FILENO) == -1
 		|| dup2(pipe_fd[1], STDOUT_FILENO) == -1)
 	{
-		perror("dup2 failed");
+		ft_printf("error\n");
 		exit(EXIT_FAILURE);
 	}
 	close(infile_fd);
@@ -91,7 +91,7 @@ static void	parent_process(char **argv, int *pipe_fd, char **envp)
 	if (dup2(pipe_fd[0], STDIN_FILENO) == -1
 		|| dup2(outfile_fd, STDOUT_FILENO) == -1)
 	{
-		perror("dup2 failed");
+		ft_printf("error\n");
 		exit(EXIT_FAILURE);
 	}
 	close(outfile_fd);
@@ -104,20 +104,20 @@ int	main(int argc, char **argv, char **envp)
 	pid_t	ppid;
 	int		pipe_fd[2];
 
-	if (argc != 5)
+	if (argc != 5 || !envp || !envp[0])
 	{
-		perror("Incorrect number of arguments\n");
+		ft_printf("error\n");
 		exit(EXIT_FAILURE);
 	}
 	if (pipe(pipe_fd) == -1)
 	{
-		perror("Error creating the pipe\n");
+		ft_printf("error\n");
 		exit(EXIT_FAILURE);
 	}
 	ppid = fork();
 	if (ppid == -1)
 	{
-		perror("Error in the fork\n");
+		ft_printf("error\n");
 		exit(EXIT_FAILURE);
 	}
 	else if (ppid == 0)
