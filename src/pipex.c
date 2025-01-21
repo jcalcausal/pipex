@@ -6,7 +6,7 @@
 /*   By: jalcausa <jalcausa@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 12:32:12 by jalcausa          #+#    #+#             */
-/*   Updated: 2025/01/21 13:39:41 by jalcausa         ###   ########.fr       */
+/*   Updated: 2025/01/21 14:50:24 by jalcausa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,6 @@ void	execute_process(char *cmd, char **envp)
 		free_split(cmd_splitted);
 		exit(EXIT_FAILURE);
 	}
-	free(path);
-	free_split(cmd_splitted);
 }
 
 static void	child_process(char **argv, int *pipe_fd, char **envp)
