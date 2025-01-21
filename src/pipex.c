@@ -6,7 +6,7 @@
 /*   By: jalcausa <jalcausa@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 12:32:12 by jalcausa          #+#    #+#             */
-/*   Updated: 2025/01/21 11:44:27 by jalcausa         ###   ########.fr       */
+/*   Updated: 2025/01/21 13:39:41 by jalcausa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,6 @@ void	execute_process(char *cmd, char **envp)
 	char	**cmd_splitted;
 
 	cmd_splitted = ft_split(cmd, ' ');
-	if (!cmd_splitted || !cmd_splitted[0])
-	{
-		perror("Error splitting command");
-		exit(EXIT_FAILURE);
-	}
 	path = get_path(cmd_splitted[0], envp);
 	if (path == NULL)
 	{
