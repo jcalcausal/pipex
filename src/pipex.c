@@ -6,15 +6,11 @@
 /*   By: jalcausa <jalcausa@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 12:32:12 by jalcausa          #+#    #+#             */
-/*   Updated: 2025/01/16 14:04:28 by jalcausa         ###   ########.fr       */
+/*   Updated: 2025/01/21 11:44:27 by jalcausa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include "../libft/libft.h"
+#include "../include/pipex.h"
 
 static char	*get_path(char *cmd, char **envp)
 {
@@ -23,7 +19,7 @@ static char	*get_path(char *cmd, char **envp)
 	char	**all_paths;
 
 	i = 0;
-	while (ft_strncmp(envp[i], "PATH=", 5) != 0)
+	while (envp[i] && ft_strncmp(envp[i], "PATH=", 5) != 0)
 		i++;
 	all_paths = ft_split(envp[i] + 5, ':');
 	i = 0;
@@ -31,14 +27,14 @@ static char	*get_path(char *cmd, char **envp)
 	{
 		path = ft_strjoin(ft_strjoin(all_paths[i], "/"), cmd);
 		if (access(path, X_OK) == 0)
+		{
+			free_split(all_paths);
 			return (path);
+		}
 		free(path);
 		i++;
 	}
-	i = 0;
-	while (all_paths[i])
-		free(all_paths[i++]);
-	free(all_paths);
+	free_split(all_paths);
 	return (NULL);
 }
 
@@ -46,19 +42,29 @@ void	execute_process(char *cmd, char **envp)
 {
 	char	*path;
 	char	**cmd_splitted;
-	int		i;
 
-	i = 0;
 	cmd_splitted = ft_split(cmd, ' ');
+	if (!cmd_splitted || !cmd_splitted[0])
+	{
+		perror("Error splitting command");
+		exit(EXIT_FAILURE);
+	}
 	path = get_path(cmd_splitted[0], envp);
 	if (path == NULL)
 	{
-		while (cmd_splitted[i])
-			free(cmd_splitted[i++]);
-		free(cmd_splitted);
+		free_split(cmd_splitted);
+		perror("Command not found");
 		exit(EXIT_FAILURE);
 	}
-	execve(path, cmd_splitted, envp);
+	if (execve(path, cmd_splitted, envp) == -1)
+	{
+		perror("Error executing command");
+		free(path);
+		free_split(cmd_splitted);
+		exit(EXIT_FAILURE);
+	}
+	free(path);
+	free_split(cmd_splitted);
 }
 
 static void	child_process(char **argv, int *pipe_fd, char **envp)
@@ -69,13 +75,18 @@ static void	child_process(char **argv, int *pipe_fd, char **envp)
 	infile_fd = open(argv[1], O_RDONLY);
 	if (infile_fd == -1)
 	{
-		ft_printf("Error in the infile\n");
+		perror("Error opening infile");
 		exit(EXIT_FAILURE);
 	}
-	dup2(infile_fd, STDIN_FILENO);
-	dup2(pipe_fd[1], STDOUT_FILENO);
-	execute_process(argv[2], envp);
+	if (dup2(infile_fd, STDIN_FILENO) == -1
+		|| dup2(pipe_fd[1], STDOUT_FILENO) == -1)
+	{
+		perror("dup2 failed");
+		exit(EXIT_FAILURE);
+	}
+	close(infile_fd);
 	close (pipe_fd[1]);
+	execute_process(argv[2], envp);
 }
 
 static void	parent_process(char **argv, int *pipe_fd, char **envp)
@@ -83,11 +94,16 @@ static void	parent_process(char **argv, int *pipe_fd, char **envp)
 	int		outfile_fd;
 
 	close(pipe_fd[1]);
-	dup2(pipe_fd[0], STDIN_FILENO);
 	outfile_fd = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0777);
-	dup2(outfile_fd, STDOUT_FILENO);
-	execute_process(argv[3], envp);
+	if (dup2(pipe_fd[0], STDIN_FILENO) == -1
+		|| dup2(outfile_fd, STDOUT_FILENO) == -1)
+	{
+		perror("dup2 failed");
+		exit(EXIT_FAILURE);
+	}
+	close(outfile_fd);
 	close(pipe_fd[0]);
+	execute_process(argv[3], envp);
 }
 
 int	main(int argc, char **argv, char **envp)
@@ -97,18 +113,18 @@ int	main(int argc, char **argv, char **envp)
 
 	if (argc != 5)
 	{
-		ft_printf("Incorrect number of arguments\n");
+		perror("Incorrect number of arguments\n");
 		exit(EXIT_FAILURE);
 	}
 	if (pipe(pipe_fd) == -1)
 	{
-		ft_printf("Error creating the pipe\n");
+		perror("Error creating the pipe\n");
 		exit(EXIT_FAILURE);
 	}
 	ppid = fork();
 	if (ppid == -1)
 	{
-		ft_printf("Error in the fork\n");
+		perror("Error in the fork\n");
 		exit(EXIT_FAILURE);
 	}
 	else if (ppid == 0)

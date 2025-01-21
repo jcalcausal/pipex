@@ -4,7 +4,7 @@ RM = rm -rf
 
 NAME = pipex
 SRC_DIR = src/
-SRC = pipex.c
+SRC = pipex.c utils.c
 OBJS_DIR = objs/
 OBJS = $(addprefix $(OBJS_DIR), $(SRC:.c=.o))
 
