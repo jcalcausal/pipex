@@ -6,7 +6,7 @@
 /*   By: jalcausa <jalcausa@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/16 12:32:12 by jalcausa          #+#    #+#             */
-/*   Updated: 2025/01/21 22:59:55 by jalcausa         ###   ########.fr       */
+/*   Updated: 2025/01/24 11:16:25 by jalcausa         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ static char	*get_path(char *cmd, char **envp)
 	while (envp[i] && ft_strncmp(envp[i], "PATH=", 5) != 0)
 		i++;
 	if (!envp[i])
-    	return (NULL);
+		return (NULL);
 	all_paths = ft_split(envp[i] + 5, ':');
 	i = 0;
 	while (all_paths[i])
